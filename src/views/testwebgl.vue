@@ -23,21 +23,46 @@ export default {
       console.log('canvas元素错误'+this.$refs.exampe);
       return;
     };
+    this.gltext = glutil.context(this.$refs.exampe);
   
-      // 这是二维画个蓝色的矩形；
-      var ctx = this.$refs.exampe.getContext('2d');
-      ctx.fillStyle = '#ADD8E6';
-      ctx.fillRect(120,10,150,150);
-      ctx.drawColor(0.91,0.502,0.502,1.0);
-      ctx.drawPoint(0,0,0,10);
+    // // 这是二维画个蓝色的矩形；
+    // var ctx = this.$refs.exampe.getContext('2d');
+    // ctx.fillStyle = '#ADD8E6';
+    // ctx.fillRect(120,10,150,150);
+    // ctx.drawColor(0.91,0.502,0.502,1.0);
+    // ctx.drawPoint(0,0,0,10);
 
-    // this.gltext = glutil.context(this.$refs.exampe);
+    // // 设置画布的背景色
     // console.log(this.gltext);
     // this.gltext.clearColor(0.28,0.82,0.8,1.0);
     // this.gltext.clear(this.gltext.COLOR_BUFFER_BIT);
 
+    var VSHADER_SOURCE =
+      "void main() { \n" +
+      //设置坐标
+      "gl_Position = vec4(0.0, 0.0, 0.0, 1.0); \n" +
+      //设置尺寸
+      "gl_PointSize = 10.0; \n" +
+      "} \n";
+    //片元着色器
+    var FSHADER_SOURCE =
+        "void main() {\n" +
+        //设置颜色
+        "gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);\n" +
+        "}\n";
+     //初始化着色器
+     if (!initShaders(this.gltext, VSHADER_SOURCE, FSHADER_SOURCE)) {
+         return;
+     };
+     //设置<canvas>的背景色
+     this.gltext.clearColor(0.0, 0.0, 0.0, 1.0);
+ 
+     //清空<canvas>
+     this.gltext.clear(gl.COLOR_BUFFER_BIT);
+ 
+     //绘制一个点
+     this.gltext.drawArrays(gl.POINTS, 0, 1);
 
-  
   },
 };
 </script>
