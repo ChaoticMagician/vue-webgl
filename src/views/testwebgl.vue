@@ -58,10 +58,10 @@ export default {
      this.gltext.clearColor(0.0, 0.0, 0.0, 1.0);
  
      //清空<canvas>
-     this.gltext.clear(gl.COLOR_BUFFER_BIT);
+     this.gltext.clear(this.gltext.COLOR_BUFFER_BIT);
  
      //绘制一个点
-     this.gltext.drawArrays(gl.POINTS, 0, 1);
+     this.gltext.drawArrays(this.gltext.POINTS, 0, 1);
 
   },
 };
