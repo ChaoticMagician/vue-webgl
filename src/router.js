@@ -14,6 +14,12 @@ export default new Router({
       component: testwebgl
     },
     {
+      path: "/1",
+      name: "home",
+      component: () =>
+      import(/* webpackChunkName: "about" */ "./views/testwebgl1.vue")
+    },
+    {
       path: "/about",
       name: "about",
       // route level code-splitting
