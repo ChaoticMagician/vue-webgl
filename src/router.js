@@ -15,9 +15,15 @@ export default new Router({
     },
     {
       path: "/1",
-      name: "home",
+      name: "testwebgl1",
       component: () =>
-      import(/* webpackChunkName: "about" */ "./views/testwebgl1.vue")
+      import("./views/testwebgl1.vue")
+    },
+    {
+      path: "/2",
+      name: "testwebgl2",
+      component: () =>
+      import("./views/testwebgl2.vue")
     },
     {
       path: "/about",

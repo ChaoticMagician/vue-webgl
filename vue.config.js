@@ -48,7 +48,7 @@ module.exports = {
   // 它支持webPack-dev-server的所有选项
 
   devServer: {
-      port: 8085, // 端口号
+      port: 8086, // 端口号
       host: 'localhost',
       https: false, // https:{type:Boolean}
       open: true, //配置自动启动浏览器
