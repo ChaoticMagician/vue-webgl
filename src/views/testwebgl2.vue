@@ -17,10 +17,11 @@ export default {
     return {
       gltext:{},
       a_Position:{},
-      a_PointSize:{},
       g_paints:[],
       u_FragColor:{},
-      g_colors:[]
+      g_colors:[],
+      a_PointSize:{},
+      g_sizes:[]
     }
   },
   mounted() {
@@ -83,13 +84,15 @@ export default {
       }else{
         this.g_colors.push([1.0,1.0,1.0,1.0]);
       }
+      //设置各点的大小
+      this.g_sizes.push(Math.random()*40);
       //清空<canvas>
       this.gltext.clear(this.gltext.COLOR_BUFFER_BIT);
       //循环加载点
       for (let index = 0; index < this.g_paints.length; index++) {
         this.gltext.vertexAttrib3f(this.a_Position,this.g_paints[index].x,this.g_paints[index].y,0)
         this.gltext.uniform4f(this.u_FragColor,this.g_colors[index][0],this.g_colors[index][1],this.g_colors[index][2],this.g_colors[index][3]);
-        this.gltext.vertexAttrib1f(this.a_PointSize,Math.random()*40);
+        this.gltext.vertexAttrib1f(this.a_PointSize,this.g_sizes[index]);
         this.gltext.drawArrays(this.gltext.POINTS, 0, 1);
       }
     }

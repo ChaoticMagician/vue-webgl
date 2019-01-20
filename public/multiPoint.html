@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>第一个WebGL程序-画一个点</title>
+  </head>
+  <body onload="main()">
+    <canvas id="webgl" width="400" height="400">
+        您的浏览器不支持canvas，建议使用Chrome浏览器
+    </canvas>
+    <script>    
+    // 主程序入口
+    function main(){
+        var canvas = document.getElementById('webgl');
+        var context = createWebGLContext(canvas);
+        var program = createProgram(context , VSHADER_SOURCE , FSHADER_SOURCE);
+        context.program = program;
+        context.useProgram(program);
+
+        var n = initVertexBuffers(context);
+
+        // 每一次重绘时的背景色
+        context.clearColor(0.0, 0.0, 0.0, 1.0);
+
+        // 清除 <canvas>
+        context.clear(context.COLOR_BUFFER_BIT);
+
+        // 画n个点
+        context.drawArrays(context.POINTS, 0, n);
+    }
+    function initVertexBuffers(context) {
+      var vertices = new Float32Array([
+        0.0, 0.5,   -0.5, -0.5,   0.5, -0.5
+      ]);
+      // 画三个点
+      var n = 3; 
+
+      // 创建一个缓存对象，用于存放顶点数据
+      var vertexBuffer = context.createBuffer();
+      // 绑定缓存对象
+      context.bindBuffer(context.ARRAY_BUFFER, vertexBuffer);
+      // 把数据写到缓冲对象中
+      context.bufferData(context.ARRAY_BUFFER, vertices, context.STATIC_DRAW);
+      // 获取顶点着色器代码中的顶点变量
+      var a_Position = context.getAttribLocation(context.program, 'a_Position');
+      // 设置变量获取数据规则
+      context.vertexAttribPointer(a_Position, 2, context.FLOAT, false, 0, 0);
+      // 允许变量从 ARRAY_BUFFER目标上绑定的缓冲区对象获取数据
+      context.enableVertexAttribArray(a_Position);
+
+      return n;
+    }
+    // 获取WebGL上下文
+    function createWebGLContext(canvas){
+        var names = ["experimental-webgl", "webgl" , "webkit-3d", "moz-webgl"];
+        var webglContext = null;
+        for (var i = 0; i < names.length; i++) {
+            try {
+                webglContext = canvas.getContext(names[i]);
+                if(webglContext){
+                    break;
+                }
+            } catch(e) {}
+
+        }
+        return webglContext;
+    }
+    // 创建一个program（相当于着色器的上下文）
+    function createProgram(context, vshader, fshader){
+        var vertexShader = loadShader(context, context.VERTEX_SHADER, vshader);
+        var fragmentShader = loadShader(context, context.FRAGMENT_SHADER, fshader);
+        var program = context.createProgram();
+        context.attachShader(program, vertexShader);
+        context.attachShader(program, fragmentShader);
+
+        context.linkProgram(program);
+        return program;
+    }   
+    function loadShader(context, type, source){
+        var shader = context.createShader(type);
+        context.shaderSource(shader, source);
+        context.compileShader(shader);
+        return shader;
+    }
+
+    // 顶点着色器代码(决定顶在哪里，大小)
+    var VSHADER_SOURCE = 
+      'attribute vec4 a_Position;\n' +
+      'void main() {\n' +
+      '  gl_Position = a_Position;\n' + // 设置顶点的位置
+      '  gl_PointSize = 10.0;\n' +      // 设置顶点的大小
+      '}\n';
+
+    // 片元着色器代码（给像素上色）
+    var FSHADER_SOURCE =
+      'void main() {\n' +
+      '  gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);\n' + // 设置顶点的颜色
+      '}\n';
+    </script>
+  </body>
+</html>

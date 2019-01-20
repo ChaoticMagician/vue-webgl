@@ -26,6 +26,24 @@ export default new Router({
       import("./views/testwebgl2.vue")
     },
     {
+      path: "/3",
+      name: "multiPoint",
+      component: () =>
+      import("./views/multiPoint.vue")
+    },
+    {
+      path: "/4",
+      name: "triangle",
+      component: () =>
+      import("./views/triangle.vue")
+    },
+    {
+      path: "/5",
+      name: "matrix",
+      component: () =>
+      import("./views/matrix.vue")
+    },
+    {
       path: "/about",
       name: "about",
       // route level code-splitting
