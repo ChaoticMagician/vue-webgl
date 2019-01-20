@@ -22,8 +22,12 @@ export default {
       a_PointSize:{},
       g_sizes:[],
       //顶点缓冲区的数据
-      vertexF32A:new Float32Array([-0.5,0.5, -0.5,-0.5, 0.5,0.5, 0.5,-0.5, ]),
-      vertexSum:4
+      vertexF32A:new Float32Array([0.0,0.0, 0.0,0.8, 0.2,0.2, 0.6,0.0, 0.2,-0.2, 0.0,-0.8, -0.2,-0.2, -0.6,0.0, -0.2,0.2, ]),
+      vertexSum:9,
+      //图像旋转角
+      angle:100,
+      u_xformMatrix:{}
+
     }
   },
   mounted() {
@@ -35,8 +39,9 @@ export default {
     var VSHADER_SOURCE =
     'attribute vec4 a_Position;\n'+
     'attribute float a_PointSize;\n'+
+    'uniform mat4 u_xformMatrix;\n' +
     'void main(){\n'+
-    ' gl_Position = a_Position;\n'+
+    ' gl_Position = u_xformMatrix * a_Position;\n'+
     ' gl_PointSize = a_PointSize;\n'+
     '}\n' ;
     var FSHADER_SOURCE =
@@ -50,8 +55,32 @@ export default {
     if (!initShaders(this.gltext, VSHADER_SOURCE, FSHADER_SOURCE)) {
         return;
     };
+    //得到点大小的a_PointSize属性，并赋值；
     this.a_PointSize = this.gltext.getAttribLocation(this.gltext.program,'a_PointSize');
     this.gltext.vertexAttrib1f(this.a_PointSize,10);
+    //创建变换矩阵，并将矩阵传给顶点着色器
+    let radian = Math.PI*this.angle/180.0;
+    let cosB = Math.cos(radian);
+    let sinB = Math.sin(radian);
+    let xformMatrix = new Float32Array([
+      //旋转
+      // cosB,sinB,0.0,0.0,
+      // -sinB,cosB,0.0,0.0,
+      // 0.0,0.0,1.0,0.0,
+      // 0.0,0.0,0.0,1.0,
+      //平移
+      // 1.0,0.0,0.0,0.2,
+      // 0.0,1.0,0.0,0.3,
+      // 0.0,0.0,1.0,0.0,
+      // 0.0,0.0,0.0,1.0,
+      //缩放
+      1.2,0.0,0.0,0.0,
+      0.0,1.2,0.0,0.0,
+      0.0,0.0,1.0,0.0,
+      0.0,0.0,0.0,1.0,
+    ]);
+    this.u_xformMatrix = this.gltext.getUniformLocation(this.gltext.program,'u_xformMatrix');
+    this.gltext.uniformMatrix4fv(this.u_xformMatrix , false , xformMatrix);
 
     this.initVertexBuffers(this.gltext);
     // 每一次重绘时的背景色
@@ -86,6 +115,6 @@ export default {
       // 允许变量从 ARRAY_BUFFER目标上绑定的缓冲区对象获取数据
       context.enableVertexAttribArray(this.a_Position);
     }
-  }
+  },
 };
 </script>
