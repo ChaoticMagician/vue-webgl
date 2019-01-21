@@ -69,18 +69,21 @@ export default {
       // 0.0,0.0,1.0,0.0,
       // 0.0,0.0,0.0,1.0,
       //平移
-      // 1.0,0.0,0.0,0.2,
-      // 0.0,1.0,0.0,0.3,
+      1.0,0.0,0.0,0.0,
+      0.0,1.0,0.0,0.0,
+      0.0,0.0,1.0,0.0,
+      0.2,0.3,0.0,1.0,
+      //缩放
+      // 1.2,0.0,0.0,0.0,
+      // 0.0,1.2,0.0,0.0,
       // 0.0,0.0,1.0,0.0,
       // 0.0,0.0,0.0,1.0,
-      //缩放
-      1.2,0.0,0.0,0.0,
-      0.0,1.2,0.0,0.0,
-      0.0,0.0,1.0,0.0,
-      0.0,0.0,0.0,1.0,
     ]);
     this.u_xformMatrix = this.gltext.getUniformLocation(this.gltext.program,'u_xformMatrix');
     this.gltext.uniformMatrix4fv(this.u_xformMatrix , false , xformMatrix);
+    //改变图形颜色
+    this.u_FragColor = this.gltext.getUniformLocation(this.gltext.program,'u_FragColor');
+    this.gltext.uniform4f(this.u_FragColor , 1.0,0.0,1.0,1.0);
 
     this.initVertexBuffers(this.gltext);
     // 每一次重绘时的背景色
