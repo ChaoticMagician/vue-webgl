@@ -44,6 +44,12 @@ export default new Router({
       import("./views/matrix.vue")
     },
     {
+      path: "/6",
+      name: "animation",
+      component: () =>
+      import("./views/animation.vue")
+    },
+    {
       path: "/about",
       name: "about",
       // route level code-splitting
