@@ -50,6 +50,12 @@ export default new Router({
       import("./views/animation.vue")
     },
     {
+      path: "/7",
+      name: "texture",
+      component: () =>
+      import("./views/texture.vue")
+    },
+    {
       path: "/about",
       name: "about",
       // route level code-splitting
