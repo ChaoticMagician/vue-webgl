@@ -1,6 +1,6 @@
 <template>
   <div class="home">
-    <div>彩色三角形</div>
+    <div>着色器，图片映射</div>
     <canvas  ref="exampe" id="testcanvas" width="900" height="900" >
       请使用支持canvas的浏览器
     </canvas>
@@ -10,7 +10,7 @@
 <script>
 import glutil from 'gl-util'
 export default {
-  name:'texture',
+  name:'texture2',
   data() {
     return {
       gltext:{},
@@ -54,13 +54,8 @@ export default {
       return
     }
     this.initVertexBuffers(this.gltext,this.verticesColors,3,this.attributeArr);
-    // Specify the color for clearing <canvas>
     this.gltext.clearColor(0.0, 0.0, 0.0, 1.0);
-  
-    // Clear <canvas>
     this.gltext.clear(this.gltext.COLOR_BUFFER_BIT);
-  
-    // Draw the rectangle
     this.gltext.drawArrays(this.gltext.TRIANGLES,0,this.pointnum);
   },
   methods:{
