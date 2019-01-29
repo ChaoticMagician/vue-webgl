@@ -4,10 +4,13 @@
     <canvas  ref="exampe" id="testcanvas" width="900" height="900" >
       请使用支持canvas的浏览器
     </canvas>
+    <img ref="img" :src="pictur" />
+    <button @click="onloadsucc"  >onload</button>
   </div>
 </template>
 
 <script>
+import pictur from '../assets/12.jpg'
 import glutil from 'gl-util'
 export default {
   name:'texture2',
@@ -15,35 +18,39 @@ export default {
     return {
       gltext:{},
       verticesColors:new Float32Array([
-        0.0,  0.5,  1.0,  0.0,  0.0, 
-        -0.5, -0.5,  0.0,  1.0,  0.0, 
-        0.5, -0.5,  0.0,  0.0,  1.0, 
+        -0.5, 0.5,  0.0,  1.0,
+        -0.5, -0.5,  0.0,  0.0,
+        0.5, 0.5,  1.0,  1.0,
+        0.5, -0.5,  1.0,  0.0,
       ]),
-      pointnum:3,
+      pointnum:4,
       a_Position:{ad:'adf'},
-      a_Color:{aasdfd:'adadff'},
+      a_TexCoord:{aasdfd:'adadff'},
+      u_Sampler:{},
       attributeArr:[
-        {keyword:'a_Position',size:2,type:'FLOAT',stride:5,offset:0},
-        {keyword:'a_Color',size:3,type:'FLOAT',stride:5,offset:2}
-      ]
+        {keyword:'a_Position',size:2,type:'FLOAT',stride:4,offset:0},
+        {keyword:'a_TexCoord',size:2,type:'FLOAT',stride:4,offset:2}
+      ],
+      texture1:{},
+      picture:null,
+      pictur
     }
   },
   mounted() {
     let VSHADER_SOURCE = 
     'attribute vec4 a_Position;\n'+
-    'attribute vec4 a_Color;\n'+
-    'varying vec4 v_Color;\n' +
+    'attribute vec2 a_TexCoord;\n'+
+    'varying vec2 v_TexCoord ;\n' +
     'void main() {\n'+
     ' gl_Position = a_Position;\n'+
-    ' v_Color = a_Color;\n'+
+    ' v_TexCoord = a_TexCoord;\n'+
     '}\n';
     let FSHADER_SOURCE = 
-    '#ifdef GL_ES\n' +
-    'precision mediump float;\n' +
-    '#endif\n' +
-    'varying vec4 v_Color;\n' +
+    'precision mediump float;\n'+
+    'uniform sampler2D u_Sampler;\n'+
+    'varying vec2 v_TexCoord;\n' +
     'void main() {\n' +
-    '  gl_FragColor = v_Color;\n' +
+    '  gl_FragColor = texture2D(u_Sampler,v_TexCoord);\n' +
     '}\n';
     if(!this.$refs.exampe){
       console.log('canvas元素错误'+this.$refs.exampe);
@@ -53,10 +60,23 @@ export default {
     if (!initShaders(this.gltext,VSHADER_SOURCE,FSHADER_SOURCE)) {
       return
     }
-    this.initVertexBuffers(this.gltext,this.verticesColors,3,this.attributeArr);
-    this.gltext.clearColor(0.0, 0.0, 0.0, 1.0);
-    this.gltext.clear(this.gltext.COLOR_BUFFER_BIT);
-    this.gltext.drawArrays(this.gltext.TRIANGLES,0,this.pointnum);
+    //创建纹理对象
+    this.texture1 = this.gltext.createTexture();
+    this.u_Sampler = this.gltext.getUniformLocation(this.gltext.program,'u_Sampler');
+    let picture = new Image;
+    //注册图像加载事件
+    // let that = this;
+    // picture.onload = function () {
+    //   that.loadTexture(that.gltext,that.pointnum,that.texture1,that.u_Sampler,picture);
+    //         console.log(that.gltext,that.pointnum,that.texture1,that.u_Sampler,picture);
+    // };
+    // picture.src = pictur;
+    // console.log(picture);
+
+    // this.initVertexBuffers(this.gltext,this.verticesColors,3,this.attributeArr);
+    // this.gltext.clearColor(0.0, 0.0, 0.0, 1.0);
+    // this.gltext.clear(this.gltext.COLOR_BUFFER_BIT);
+    // this.gltext.drawArrays(this.gltext.TRIANGLES,0,this.pointnum);
   },
   methods:{
     initVertexBuffers(gl,data,num,arr){
@@ -79,6 +99,31 @@ export default {
         gl.enableVertexAttribArray(this[element.keyword]);
         // gl.bindBuffer(gl.ARRAY_BUFFER, null);
       }
+    },
+    loadTexture(gl, n, texture, u_Sampler,image){
+      //1.对纹理图像进行Y轴反转
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
+      //2.开启0号纹理单元
+      gl.activeTexture(gl.TEXTURE0);
+      //3.向target绑定纹理对象
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      //4.配置纹理参数
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAPMP_TO_EDGE);
+        // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
+
+      //5.配置纹理图像
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image);
+      //6.将0号纹理图像传递给着色器
+      gl.uniform1i(u_Sampler, 0);
+      // 清空 <canvas>
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      //绘制矩形
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, n);
+    },
+    onloadsucc(){
+      console.log('1234',this.$refs.img);
+      this.loadTexture(this.gltext,this.pointnum,this.u_Sampler,this.$refs.img)
     }
   }
 }
