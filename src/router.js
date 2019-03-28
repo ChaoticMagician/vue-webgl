@@ -69,6 +69,37 @@ export default new Router({
       // which is lazy-loaded when the route is visited.
       component: () =>
         import(/* webpackChunkName: "about" */ "./views/About.vue")
-    }
+    },
+    // 再敲一遍，，，╯▂╰玩了几天都忘了
+    {
+      path: "/double",
+      name: "double",
+      component: () =>
+        import("./double/double.vue")
+    },
+    {
+      path: "/double2",
+      name: "double2",
+      component: () =>
+        import("./double/double2.vue")
+    },
+    {
+      path: "/double3",
+      name: "double3",
+      component: () =>
+        import("./double/double3.vue")
+    },
+    {
+      path: "/double4",
+      name: "double4",
+      component: () =>
+        import("./double/double4.vue")
+    },
+    {
+      path: "/double5",
+      name: "double5",
+      component: () =>
+        import("./double/double5.vue")
+    },
   ]
 });

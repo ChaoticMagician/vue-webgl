@@ -55,7 +55,7 @@ export default {
          return;
      };
      //设置<canvas>的背景色
-     this.gltext.clearColor(0.0, 0.0, 0.0, 1.0);
+     this.gltext.clearColor(1.0, 1.0, 0.5, 1.0);
  
      //清空<canvas>
      this.gltext.clear(this.gltext.COLOR_BUFFER_BIT);
