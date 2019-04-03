@@ -81,7 +81,7 @@ export default {
     this.gltext.uniformMatrix4fv(this.u_xformMatrix , false , this.pingyimatrx);
     ///PS，叠加矩阵获得叠加效果
     this.u_xformMatrixtwo = this.gltext.getUniformLocation(this.gltext.program,'u_xformMatrixtwo');
-    this.gltext.uniformMatrix4fv(this.u_xformMatrixtwo , false , this.suofangmatrf);
+    this.gltext.uniformMatrix4fv(this.u_xformMatrixtwo , false , this.xuanzhuanmatrx);
     //载入缓冲区，并绑定值
     this.initVertexBuffers(this.gltext,this.vertexF32A,this.a_Position);
     //设置画布背景颜色
@@ -95,8 +95,7 @@ export default {
     // this.gltext.drawArrays(this.gltext.TRIANGLES, 0, 9);
     // this.gltext.drawArrays(this.gltext.TRIANGLE_STRIP , 0, 9);
     this.gltext.drawArrays(this.gltext.TRIANGLE_FAN, 0, 9);
-    console.log(this.g_last);
-    this.animentaction(this.g_last,this.angle,this.ANGLE_STEP);
+    this.animentaction(this.g_last,this.angle,this.ANGLE_STEP,this);
   },
   methods:{
     initVertexBuffers(context,data,vertexAttribute){
@@ -113,19 +112,36 @@ export default {
       //允许变量从 ARRAY_BUFFER目标上绑定的缓冲区对象获取数据
       context.enableVertexAttribArray(vertexAttribute);
     },
-    animentaction(lasttime,angle,angleStep){
-      let that = this;
-      let animentfunction = function () {
-        let thisangle = function(lasttime,angle,angleStep){
-          let newtime = Date.now();
-          let gotime = newtime-lasttime;
-          lasttime = newtime;
-          let newangle = angle+(angleStep*gotime)/1000.0
-          return newangle%=360;
-        };
-        console.log(thisangle(lasttime,angle,angleStep))
+    thisangle(lasttime,angle,angleStep){
+      let newtime = Date.now();
+      let gotime = newtime-lasttime;
+      lasttime = newtime;
+      let newangle = angle+(angleStep*gotime)/1000.0;
+      let returnangle = newangle%=360
+      return {returnangle,lasttime};
+    },
+    animentaction(lasttime,angle,angleStep,that){
+      let xunhuan = function(){
+        let objs = that.thisangle(lasttime,angle,angleStep);
+        angle =objs.returnangle;
+        lasttime =objs.lasttime;
+        let thisxuanzhuan = new Float32Array([
+          Math.cos(Math.PI*angle/180.0),Math.sin(Math.PI*angle/180.0),0.0,0.0,
+          -Math.sin(Math.PI*angle/180.0),Math.cos(Math.PI*angle/180.0),0.0,0.0,
+          0.0,0.0,1.0,0.0,
+          0.0,0.0,0.0,1.0,
+        ]);
+
+        that.gltext.uniformMatrix4fv(that.u_xformMatrixtwo , false , thisxuanzhuan);
+        //设置画布背景颜色
+        that.gltext.clear(that.gltext.COLOR_BUFFER_BIT);
+        //绘制点
+        that.gltext.drawArrays(that.gltext.PRINTS, 0, 9);
+        that.gltext.drawArrays(that.gltext.TRIANGLE_FAN, 0, 9);
+        // 请求浏览器动画循环
+        requestAnimationFrame(xunhuan); 
       };
-      animentfunction();
+      xunhuan();
     }
   }
 }
