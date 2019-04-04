@@ -4,52 +4,65 @@
     <canvas  ref="exampe" id="testcanvas" width="900" height="900" >
       请使用支持canvas的浏览器
     </canvas>
+    <img ref="img" crossorigin="Anonymous" :src='pictur'>
   </div>
 </template>
 
 <script>
 //webgl工具集
+import pictur from '../assets/12.jpg'
 import glutil from 'gl-util'
 export default {
   name:'dobule6',
   data() {
     return {
       gltext:{},
-      verticesColorsData:new Float32Array([
-        0.0,  0.5,  1.0,  0.0,  0.0, 
-        -0.5, -0.5,  0.0,  1.0,  0.0, 
-        0.5, -0.5,  0.0,  0.0,  1.0, 
+      verticesData:new Float32Array([
+        -0.5, 0.5,  0.0,  1.0,
+        -0.5, -0.5,  0.0,  0.0,
+        0.5, 0.5,  1.0,  1.0,
+        0.5, -0.5,  1.0,  0.0,
       ]),
       attributeArr:[
-        {keyword:'a_Position',size:2,type:'FLOAT',stride:5,offset:0},
-        {keyword:'a_Color',size:3,type:'FLOAT',stride:5,offset:2}
-      ]
+        {keyword:'a_Position',size:2,type:'FLOAT',stride:4,offset:0},
+        {keyword:'a_TexCoord',size:2,type:'FLOAT',stride:4,offset:2}
+      ],
+      pointnum:0,
+      texture:{},
+      pictur
     }
   },
   mounted() {
     let VSHADER_SOURCE = 
     `attribute vec4 a_Position;
-    attribute vec4 a_Color;
-    varying vec4 v_Color;
+    attribute vec2 a_TexCoord;
+    varying vec2 v_TexCoord;
     void main(){
       gl_Position = a_Position;
-      v_Color = a_Color;
+      v_TexCoord = a_TexCoord;
     }`;
     let FSHADER_SOURCE = 
     `precision mediump float;
-    varying vec4 v_Color;
+    uniform sampler2D u_Sampler;
+    varying vec2 v_TexCoord;
     void main(){
-      gl_FragColor = v_Color;
+      gl_FragColor = texture2D(u_Sampler, v_TexCoord);
     }`;
     this.gltext = glutil.context(this.$refs.exampe);
     initShaders(this.gltext,VSHADER_SOURCE,FSHADER_SOURCE);
-    //从缓冲区得到点位坐标和颜色
-    let datanum =this.initVertexBuffers(this.gltext,this.verticesColorsData,this.attributeArr);  
-    //设置画布背景颜色
-    this.gltext.clearColor(1.0,0.0,1.0,1.0);
-    this.gltext.clear(this.gltext.COLOR_BUFFER_BIT);
-    //绘制图形
-    this.gltext.drawArrays(this.gltext.TRIANGLES,0,datanum);
+    //从缓冲区得到点位坐标和顶点对照
+    this.pointnum =this.initVertexBuffers(this.gltext,this.verticesData,this.attributeArr);  
+    //引入图片，设置纹理对象
+    let that = this;
+    this.texture = this.gltext.createTexture();//创建纹理
+    //获取u_Sampler的存储位置
+    this.u_Sampler = this.gltext.getUniformLocation(this.gltext.program,"u_Sampler");
+    let image = new Image();
+    image.crossOrigin = "Anonymous";
+    image.onload = function () {
+      that.loadTexture(that.gltext,that.pointnum,that.texture,that.u_Sampler,image);
+    };
+    image.src = pictur;
   },
   methods:{
     initVertexBuffers(gl,data,arr){
@@ -65,6 +78,30 @@ export default {
         gl.enableVertexAttribArray(this[element.keyword]);
       }
       return DNUM;
+    },
+    loadTexture(gl,n,texture,u_Sampler,image) {
+      //对纹理图像进行y轴反转
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,1);
+      //开启0号纹理单元
+      gl.activeTexture(gl.TEXTURE0);
+      //向target绑定纹理对象
+      gl.bindTexture(gl.TEXTURE_2D,texture);
+      //配置纹理参数
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      //配置纹理图像
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+      //将0号纹理传递给着色器
+      gl.uniform1i(u_Sampler,0);
+
+      //绘制
+      gl.clearColor(0.0,0.0,0.0,1.0);
+
+      gl.clear(gl.COLOR_BUFFER_BIT);
+
+      gl.drawArrays(gl.TRIANGLE_STRIP,0,n);
     }
   }
 }

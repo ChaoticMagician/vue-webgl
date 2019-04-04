@@ -134,11 +134,11 @@
 
         //创建Image对象，并绑定加载完成事件
         var image = new Image();
-        image.crossOrigin = "Anonymous";
+        // image.crossOrigin = "Anonymous";
         image.onload = function () {
           loadTexture(gl,n,texture,u_Sampler,image);
         };
-        image.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
+        image.src = "timg.PNG";
         // if ( image.complete || image.complete === undefined ) {
         //   image.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
         //   image.src = "timg.PNG";
