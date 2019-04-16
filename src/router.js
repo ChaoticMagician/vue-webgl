@@ -113,5 +113,23 @@ export default new Router({
       component: () =>
         import("./double/double7.vue")
     },
+    {
+      path: "/double8",
+      name: "double8",
+      component: () =>
+        import("./double/double8.vue")
+    },
+    {
+      path: "/double9",
+      name: "double9",
+      component: () =>
+        import("./double/double9.vue")
+    },
+    {
+      path: "/double10",
+      name: "double10",
+      component: () =>
+        import("./double/double10.vue")
+    },
   ]
 });
