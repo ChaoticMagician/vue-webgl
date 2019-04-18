@@ -1,10 +1,11 @@
 <template>
   <div class="home">
-    <div>移动视点到Z轴负方向</div>
+    <div>设置可视矩形远近裁面</div>
     <canvas  ref="exampe" id="testcanvas" width="900" height="900" >
       请使用支持canvas的浏览器
     </canvas>
-    <button @click="changeview" >改变</button>
+    <button @click="changeview" >还原</button>
+    <div>X:{{g_eyeX}},Y:{{g_eyeY}},Z:{{g_eyeZ}},,,,,,,near:{{g_near}},far:{{g_far}},</div>
   </div>
 </template>
 
@@ -36,17 +37,19 @@ export default {
       pictur1,
       g_eyeX:0.20,
       g_eyeY:0.25,
-      g_eyeZ:0.25
+      g_eyeZ:0.25,
+      g_near:0,
+      g_far:1
     }
   },
   mounted() {
     let VSHADER_SOURCE = 
     `attribute vec4 a_Position;
     attribute vec2 a_TexCoord;
-    uniform mat4 u_ViewMatrix;
+    uniform mat4 u_ModelViewMatrix;
     varying vec2 v_TexCoord;
     void main(){
-      gl_Position = u_ViewMatrix*a_Position;
+      gl_Position = u_ModelViewMatrix*a_Position;
       v_TexCoord = a_TexCoord;
     }`;
     let FSHADER_SOURCE = 
@@ -128,14 +131,19 @@ export default {
         gl.drawArrays(gl.TRIANGLE_STRIP,0,n);
       }
     },
-    //改变视域
+    //还原视域
     changeview(){
       let viewMatrix = new Matrix4();
-      this.u_ViewMatrix = this.gltext.getUniformLocation(this.gltext.program,"u_ViewMatrix");
+      this.u_ModelViewMatrix = this.gltext.getUniformLocation(this.gltext.program,"u_ModelViewMatrix");
       //设置视角矩阵的相关信息（视点，视线，上方向）
       viewMatrix.setLookAt(0.20, 0.25, 0.25, 0, 0, 0, 0, 1, 0);
-      //将试图矩阵传给u_ViewMatrix变量
-      this.gltext.uniformMatrix4fv(this.u_ViewMatrix, false, viewMatrix.elements);
+      this.g_eyeX=0.20;
+      this.g_eyeY=0.25;
+      this.g_eyeZ=0.25;
+      this.g_near=0;
+      this.g_far=1;
+      //将试图矩阵传给u_ModelViewMatrix变量
+      this.gltext.uniformMatrix4fv(this.u_ModelViewMatrix, false, viewMatrix.elements);
       //绘制
       this.gltext.clearColor(0.0,0.0,0.0,1.0);
       this.gltext.clear(this.gltext.COLOR_BUFFER_BIT);
@@ -157,15 +165,32 @@ export default {
           this.g_eyeZ += 0.01;
       }else if(event.keyCode == 109){
           this.g_eyeZ -= 0.01;
+      //设置可视矩形的前后裁面
+      }else if(event.keyCode == 104){
+          this.g_near += 0.01;
+      }else if(event.keyCode == 98){
+          this.g_near -= 0.01;
+      }else if(event.keyCode == 100){
+          this.g_far += 0.01;
+      }else if(event.keyCode == 102){
+          this.g_far -= 0.01;
       }else {
           return;
       };
       let viewMatrixa = new Matrix4();
-      this.u_ViewMatrix = this.gltext.getUniformLocation(this.gltext.program,"u_ViewMatrix");
+      this.u_ModelViewMatrix = this.gltext.getUniformLocation(this.gltext.program,"u_ModelViewMatrix");
       //设置视角矩阵的相关信息（视点，视线，上方向）
       viewMatrixa.setLookAt(this.g_eyeX, this.g_eyeY, this.g_eyeZ, 0, 0, 0, 0, 1, 0);
-      //将试图矩阵传给u_ViewMatrix变量
-      this.gltext.uniformMatrix4fv(this.u_ViewMatrix, false, viewMatrixa.elements);
+      //设置模型矩阵的相关信息
+      let modelMatrix = new Matrix4();
+      modelMatrix.setRotate(-10, 0, 0, 1);
+      //设置正射投影矩阵
+      let orthMatrix = new Matrix4();
+      orthMatrix.setOrtho(-1,1,-1,1,this.g_near,this.g_far);
+      //三个矩阵相乘
+       var modeViewMatrix = orthMatrix.multiply(viewMatrixa.multiply(modelMatrix));
+      //将试图矩阵传给u_ModelViewMatrix变量
+      this.gltext.uniformMatrix4fv(this.u_ModelViewMatrix, false, modeViewMatrix.elements);
       //绘制
       this.gltext.clearColor(0.0,0.0,0.0,1.0);
       this.gltext.clear(this.gltext.COLOR_BUFFER_BIT);

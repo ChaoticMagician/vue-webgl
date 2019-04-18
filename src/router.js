@@ -131,5 +131,41 @@ export default new Router({
       component: () =>
         import("./double/double10.vue")
     },
+    {
+      path: "/double11",
+      name: "double11",
+      component: () =>
+        import("./double/double11.vue")
+    },
+    {
+      path: "/double12",
+      name: "double12",
+      component: () =>
+        import("./double/double12.vue")
+    },
+    {
+      path: "/double13",
+      name: "double13",
+      component: () =>
+        import("./double/double13.vue")
+    },
+    {
+      path: "/double14",
+      name: "double14",
+      component: () =>
+        import("./double/double14.vue")
+    },
+    {
+      path: "/double15",
+      name: "double15",
+      component: () =>
+        import("./double/double15.vue")
+    },
+    {
+      path: "/double16",
+      name: "double16",
+      component: () =>
+        import("./double/double16.vue")
+    },
   ]
 });
