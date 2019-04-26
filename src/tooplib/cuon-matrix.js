@@ -739,4 +739,5 @@ var Vector4 = function(opt_src) {
   } 
   this.elements = v;
 }
+export {Vector3};
 export default Matrix4;

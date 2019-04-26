@@ -1,6 +1,6 @@
 <template>
   <div class="home">
-    <div>平行光下漫反射</div>
+    <div>平行光和环境光下漫反射</div>
     <canvas  ref="exampe" id="testcanvas" width="900" height="900" >
       请使用支持canvas的浏览器
     </canvas>
