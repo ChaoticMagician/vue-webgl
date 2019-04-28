@@ -1,6 +1,6 @@
 <template>
   <div class="home">
-    <div>平行光和环境光下漫反射</div>
+    <div>点光源,平行光和环境光下漫反射</div>
     <canvas  ref="exampe" id="testcanvas" width="900" height="900" >
       请使用支持canvas的浏览器
     </canvas>
@@ -77,7 +77,8 @@ export default {
     let VSHADER_SOURCE = 
     `attribute vec4 a_Position;
     attribute vec4 a_Color;
-    attribute vec3 a_Normal;
+    attribute vec4 a_Normal;
+    uniform mat4 u_NormalMatrix;
     uniform mat4 u_ModelViewMatrix;
     uniform vec3 u_LightColor;
     uniform vec3 u_LightDirection;
@@ -85,7 +86,7 @@ export default {
     varying vec4 v_Color;
     void main(){
       gl_Position = u_ModelViewMatrix *a_Position;
-        vec3 normal = normalize(vec3(a_Normal));
+        vec3 normal = normalize(vec3(u_NormalMatrix*a_Normal));
         float nDotL = max(dot(u_LightDirection,normal),0.0);
         vec3 diffuse = u_LightColor * vec3(a_Color) * nDotL;
         vec3 ambient = u_AmbientLight * a_Color.rgb;
@@ -149,7 +150,7 @@ export default {
       viewMatrix.setLookAt(2,2,5,0,0,0,0,1,0);
       //设置模型矩阵的相关信息
       let modelMatrix = new Matrix4();
-      modelMatrix.setRotate(0, 0, 0,1);
+      modelMatrix.setRotate(130,10, 0,1);
       //设置透视投影矩阵
       let projMatrix = new Matrix4();
       projMatrix.setPerspective(30,this.$refs.exampe.width/this.$refs.exampe.height,1,100);
@@ -157,6 +158,14 @@ export default {
       let modeViewMatrix = projMatrix.multiply(viewMatrix.multiply(modelMatrix));
       //将试图矩阵传给u_ViewMatrix变量
       this.gltext.uniformMatrix4fv(this.u_ModelViewMatrix, false, modeViewMatrix.elements);
+      //计算矩阵的逆转置矩阵，并赋值
+      this.u_normalMatrix = this.gltext.getUniformLocation(this.gltext.program,"u_NormalMatrix");
+      let normalMatrix = new Matrix4();
+      //根据模型矩阵计算用来变换法向量的矩阵
+      normalMatrix.setInverseOf(modelMatrix);
+      normalMatrix.transpose();
+      //将用来变换放下了的矩阵传给u_NormalMatrix变量
+      this.gltext.uniformMatrix4fv(this.u_normalMatrix,false,normalMatrix.elements);
     },
     setlight(){
       let u_LightColor = this.gltext.getUniformLocation(this.gltext.program, "u_LightColor");

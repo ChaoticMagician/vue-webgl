@@ -173,5 +173,17 @@ export default new Router({
       component: () =>
         import("./double/double17.vue")
     },
+    {
+      path: "/double18",
+      name: "double18",
+      component: () =>
+        import("./double/double18.vue")
+    },
+    {
+      path: "/double19",
+      name: "double19",
+      component: () =>
+        import("./double/double19.vue")
+    },
   ]
 });
