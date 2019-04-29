@@ -1,6 +1,6 @@
 <template>
   <div class="home">
-    <div>点光源光下漫反射,逐点渲染</div>
+    <div>点光源光下漫反射,逐片渲染</div>
     <canvas  ref="exampe" id="testcanvas" width="900" height="900" >
       请使用支持canvas的浏览器
     </canvas>
@@ -81,25 +81,30 @@ export default {
     uniform mat4 u_NormalMatrix;
     uniform mat4 u_ModelViewMatrix;
     uniform mat4 u_ModelMatrix;
-    uniform vec3 u_LightColor;
-    uniform vec3 u_LightPosition;
-    uniform vec3 u_AmbientLight;
+    varying vec3 v_Position;
+    varying vec3 v_Normal;
     varying vec4 v_Color;
     void main(){
       gl_Position = u_ModelViewMatrix *a_Position;
-        vec3 normal = normalize(vec3(u_NormalMatrix*a_Normal));
-        vec4 vertexPosition = u_ModelMatrix * a_Position;
-        vec3 lightDirection = normalize(u_LightPosition - vec3(vertexPosition));
-        float nDotL = max(dot(lightDirection,normal),0.0);
-        vec3 diffuse = u_LightColor * vec3(a_Color) * nDotL;
-        vec3 ambient = u_AmbientLight * a_Color.rgb;
-      v_Color = vec4(diffuse+ambient,a_Color.a);
+      v_Position = vec3(u_ModelMatrix * a_Position);
+      v_Normal = normalize(vec3(u_NormalMatrix * a_Normal));
+      v_Color = a_Color;
     }`;
     let FSHADER_SOURCE = 
     `precision mediump float;
-    varying vec4 v_Color;
-    void main(){
-      gl_FragColor = v_Color;
+      uniform vec3 u_LightColor;
+      uniform vec3 u_LightPosition;
+      uniform vec3 u_AmbientLight;
+      varying vec3 v_Position;
+      varying vec3 v_Normal;
+      varying vec4 v_Color;
+      void main(){
+        vec3 normal = normalize(v_Normal);
+        vec3 lightDirection = normalize(u_LightPosition - vec3(v_Position));
+        float nDotL = max(dot(lightDirection,normal),0.0);
+        vec3 diffuse = u_LightColor * vec3(v_Color) * nDotL;
+        vec3 ambient = u_AmbientLight * v_Color.rgb;
+      gl_FragColor = vec4(diffuse + ambient, v_Color.a);
     }`;
     this.gltext = glutil.context(this.$refs.exampe);
     initShaders(this.gltext,VSHADER_SOURCE,FSHADER_SOURCE);

@@ -1,6 +1,6 @@
 <template>
   <div class="home">
-    <div>点光源光下漫反射,逐点渲染</div>
+    <div>键盘控制正方形旋转变换</div>
     <canvas  ref="exampe" id="testcanvas" width="900" height="900" >
       请使用支持canvas的浏览器
     </canvas>
@@ -81,25 +81,30 @@ export default {
     uniform mat4 u_NormalMatrix;
     uniform mat4 u_ModelViewMatrix;
     uniform mat4 u_ModelMatrix;
-    uniform vec3 u_LightColor;
-    uniform vec3 u_LightPosition;
-    uniform vec3 u_AmbientLight;
+    varying vec3 v_Position;
+    varying vec3 v_Normal;
     varying vec4 v_Color;
     void main(){
       gl_Position = u_ModelViewMatrix *a_Position;
-        vec3 normal = normalize(vec3(u_NormalMatrix*a_Normal));
-        vec4 vertexPosition = u_ModelMatrix * a_Position;
-        vec3 lightDirection = normalize(u_LightPosition - vec3(vertexPosition));
-        float nDotL = max(dot(lightDirection,normal),0.0);
-        vec3 diffuse = u_LightColor * vec3(a_Color) * nDotL;
-        vec3 ambient = u_AmbientLight * a_Color.rgb;
-      v_Color = vec4(diffuse+ambient,a_Color.a);
+      v_Position = vec3(u_ModelMatrix * a_Position);
+      v_Normal = normalize(vec3(u_NormalMatrix * a_Normal));
+      v_Color = a_Color;
     }`;
     let FSHADER_SOURCE = 
     `precision mediump float;
-    varying vec4 v_Color;
-    void main(){
-      gl_FragColor = v_Color;
+      uniform vec3 u_LightColor;
+      uniform vec3 u_LightPosition;
+      uniform vec3 u_AmbientLight;
+      varying vec3 v_Position;
+      varying vec3 v_Normal;
+      varying vec4 v_Color;
+      void main(){
+        vec3 normal = normalize(v_Normal);
+        vec3 lightDirection = normalize(u_LightPosition - vec3(v_Position));
+        float nDotL = max(dot(lightDirection,normal),0.0);
+        vec3 diffuse = u_LightColor * vec3(v_Color) * nDotL;
+        vec3 ambient = u_AmbientLight * v_Color.rgb;
+      gl_FragColor = vec4(diffuse + ambient, v_Color.a);
     }`;
     this.gltext = glutil.context(this.$refs.exampe);
     initShaders(this.gltext,VSHADER_SOURCE,FSHADER_SOURCE);
@@ -115,9 +120,13 @@ export default {
     let datanum1 =this.initVertexBuffers(this.gltext,this.indices,this.indicesBuffer);  
     //设置变换、视图矩阵
     this.setmatrix()
-
     //点索引绘图
-    this.drawElements(datanum1)
+    this.drawElements(datanum1);
+    //键盘控制注册
+    let that = this;
+    document.onkeydown = function (event) {
+      that.keychangeview(event);
+    }
   },
   methods:{
     initVertexBuffers(gl,data,argument){
@@ -145,12 +154,12 @@ export default {
       //绘制图形
       this.gltext.drawElements(this.gltext.TRIANGLES,n,this.gltext.UNSIGNED_BYTE,0);
     },
-    setmatrix(){
+    setmatrix(newModelMatrix){
       //获取矩阵的传输通道
       this.u_ModelViewMatrix = this.gltext.getUniformLocation(this.gltext.program,"u_ModelViewMatrix");
       //设置场景的透视视域
       let viewMatrix = new Matrix4();
-      viewMatrix.setLookAt(3,3,7,0,0,0,0,1,0);
+      viewMatrix.setLookAt(0,0,7,0,0,0,0,1,0);
       //设置模型矩阵的相关信息
       let modelMatrix = new Matrix4();
       modelMatrix.setRotate(130,10, 0,1);
@@ -188,6 +197,28 @@ export default {
       //设置环境光颜色
       // let u_AmbientLight = this.gltext.getUniformLocation(this.gltext.program, "u_AmbientLight");
       // this.gltext.uniform3f(u_AmbientLight,0.2,0.2,0.2);
+    },
+    keychangeview(event){
+      let modelMatrix = new Matrix4();
+      let modelMatrixTarget = {angle:0,x:0,y:0,z:0};
+      if(event.keyCode == 39){
+        modelMatrixTarget.y = 1;
+        modelMatrixTarget.angle+=10;
+      console.log(event);
+      }else if(event.keyCode == 37){
+      console.log(event);
+      }else if(event.keyCode == 38){
+      console.log(event);
+      }else if(event.keyCode == 40){
+      console.log(event);
+      }else if(event.keyCode == 107){
+      console.log(event);
+      }else if(event.keyCode == 109){
+      console.log(event);
+      }else {
+          return;
+      };
+
     }
   }
 }

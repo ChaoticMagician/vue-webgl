@@ -62,11 +62,17 @@
 
         "attribute vec4 a_Normal;\n" +//法向量
 
-        "uniform mat4 u_MvpMatrix;\n" +
+        "uniform mat4 u_ModelMatrix;\n" + //模型矩阵
 
-        "uniform vec3 u_LightColor;\n" +//光线颜色
+        "uniform mat4 u_MvpMatrix;\n" + //模型视图投影矩阵
 
-        "uniform vec3 u_LightDirection;\n" +//入射光方向，归一化的世界坐标
+        "uniform mat4 u_NormalMatrix;\n" + //用来变换法向量的矩阵
+
+        "uniform vec3 u_LightColor;\n" + //光线颜色
+
+        "uniform vec3 u_LightPosition;\n" + //光源位置（世界坐标系）
+
+        "uniform vec3 u_AmbientLight;\n" + //环境光颜色
 
         "varying vec4 v_Color;\n" +
 
@@ -76,17 +82,31 @@
 
         //对法向量进行归一化
 
-        "   vec3 normal = normalize(vec3(a_Normal));\n" +
+        "   vec3 normal = normalize(vec3(u_NormalMatrix * a_Normal));\n" + //动态的法向量会被处理后并归一化
+
+        //计算顶点的世界坐标
+
+        "   vec4 vertexPosition = u_ModelMatrix * a_Position;\n" +
+
+        //计算光线方向并归一化
+
+        "   vec3 lightDirection = normalize(u_LightPosition - vec3(vertexPosition));\n" +
 
         //计算光线方向和法向量的点积
 
-        "   float nDotL = max(dot(u_LightDirection,normal),0.0);\n" +
+        "   float nDotL = max(dot(lightDirection,normal),0.0);\n" +
 
         //计算漫反射光的颜色
 
         "   vec3 diffuse = u_LightColor * vec3(a_Color) * nDotL;\n" +
 
-        "   v_Color = vec4(diffuse,a_Color.a);\n" +
+        //计算环境光产生的反射光颜色
+
+        "   vec3 ambient = u_AmbientLight * a_Color.rgb;\n" +
+
+        //将以上两者相加得到物体最终的颜色
+
+        "   v_Color = vec4(diffuse+ambient,a_Color.a);\n" +
 
         "}";
 
@@ -174,11 +194,23 @@
 
         var u_MvpMatrix = gl.getUniformLocation(gl.program, "u_MvpMatrix");
 
+        var u_ModelMatrix = gl.getUniformLocation(gl.program, "u_ModelMatrix");
+
+        var u_NormalMatrix = gl.getUniformLocation(gl.program, "u_NormalMatrix");
+
+ 
+
+ 
+
         var u_LightColor = gl.getUniformLocation(gl.program, "u_LightColor");
 
-        var u_LightDirection = gl.getUniformLocation(gl.program, "u_LightDirection");
+        var u_LightPosition = gl.getUniformLocation(gl.program, "u_LightPosition");
 
-        if (!u_MvpMatrix || !u_LightColor || !u_LightDirection) {
+        var u_AmbientLight = gl.getUniformLocation(gl.program, "u_AmbientLight");
+
+ 
+
+        if (!u_ModelMatrix || !u_LightColor || !u_LightPosition || !u_AmbientLight || !u_NormalMatrix || !u_MvpMatrix) {
 
             console.log("无法获取相关的存储位置，或者未定义");
 
@@ -192,29 +224,65 @@
 
         gl.uniform3f(u_LightColor, 1.0, 1.0, 1.0);
 
-        //设置光线方向（世界坐标系下的）
+        //设置光线方向（不是世界坐标系下的，所以讲这些取消掉，直接把位置传入）
 
-        var lightDirection = new Vector3([0.5, 3.0, 4.0]);
+        gl.uniform3f(u_LightPosition, 2.0, 3.0, 4.0);
 
-        lightDirection.normalize(); //归一化
+        //设置环境光颜色
 
-        gl.uniform3fv(u_LightDirection, lightDirection.elements);
+        gl.uniform3f(u_AmbientLight, 0.2, 0.2, 0.2);
 
  
 
-        //计算模型视图投影矩阵
+        //声明矩阵
 
-        var mvpMatrix = new Matrix4(); //声明一个矩阵模型
+        var mvpMatrix = new Matrix4(); //声明一个模型视图投影矩阵
+
+        var modelMatrix = new Matrix4(); //模型矩阵
+
+        var normalMatrix = new Matrix4(); //用来变换法向量的矩阵
+
+ 
+
+        //计算矩阵
 
         mvpMatrix.setPerspective(30, canvas.width / canvas.height, 1, 100);//设置透视矩阵
 
-        mvpMatrix.lookAt(3, 3, 7, 0, 0, 0, 0, 1, 0);
+        mvpMatrix.lookAt(0, 0, 14, 0, 0, 0, 0, 1, 0); //设置视点的位置
+
+ 
+
+        modelMatrix.setRotate(90, 0, 1, 0);
+
+ 
+
+        mvpMatrix.multiply(modelMatrix);
+
+ 
+
+ 
+
+        //将移动后的模型传给u_MvpMatrix变量
+
+        gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
 
  
 
         //将模型视图投影矩阵传给u_MvpMatrix变量
 
         gl.uniformMatrix4fv(u_MvpMatrix, false, mvpMatrix.elements);
+
+ 
+
+        //根据模型矩阵计算用来变换法向量的矩阵
+
+        normalMatrix.setInverseOf(modelMatrix);
+
+        normalMatrix.transpose();
+
+        //将用来变换放下了的矩阵传给u_NormalMatrix变量
+
+        gl.uniformMatrix4fv(u_NormalMatrix, false, normalMatrix.elements);
 
  
 
@@ -250,17 +318,17 @@
 
         var vertices = new Float32Array([   // 顶点坐标
 
-            1.0, 1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, // v0-v1-v2-v3 front
+            2.0, 2.0, 2.0,  -2.0, 2.0, 2.0,  -2.0,-2.0, 2.0,   2.0,-2.0, 2.0, // v0-v1-v2-v3 front
 
-            1.0, 1.0, 1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0, -1.0, // v0-v3-v4-v5 right
+            2.0, 2.0, 2.0,   2.0,-2.0, 2.0,   2.0,-2.0,-2.0,   2.0, 2.0,-2.0, // v0-v3-v4-v5 right
 
-            1.0, 1.0, 1.0, 1.0, 1.0, -1.0, -1.0, 1.0, -1.0, -1.0, 1.0, 1.0, // v0-v5-v6-v1 up
+            2.0, 2.0, 2.0,   2.0, 2.0,-2.0,  -2.0, 2.0,-2.0,  -2.0, 2.0, 2.0, // v0-v5-v6-v1 up
 
-            -1.0, 1.0, 1.0, -1.0, 1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, 1.0, // v1-v6-v7-v2 left
+            -2.0, 2.0, 2.0,  -2.0, 2.0,-2.0,  -2.0,-2.0,-2.0,  -2.0,-2.0, 2.0, // v1-v6-v7-v2 left
 
-            -1.0, -1.0, -1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, -1.0, -1.0, 1.0, // v7-v4-v3-v2 down
+            -2.0,-2.0,-2.0,   2.0,-2.0,-2.0,   2.0,-2.0, 2.0,  -2.0,-2.0, 2.0, // v7-v4-v3-v2 down
 
-            1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0  // v4-v7-v6-v5 back
+            2.0,-2.0,-2.0,  -2.0,-2.0,-2.0,  -2.0, 2.0,-2.0,   2.0, 2.0,-2.0  // v4-v7-v6-v5 back
 
         ]);
 
@@ -283,8 +351,6 @@
             1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0　    // v4-v7-v6-v5 back
 
         ]);
-
- 
 
  
 
@@ -406,7 +472,7 @@
 
         //向缓冲区赋值
 
-        gl.vertexAttribPointer(a_attribute, num, type, false, 0, 0)
+        gl.vertexAttribPointer(a_attribute, num, type, false, 0, 0);
 
  
 
