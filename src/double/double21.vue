@@ -16,6 +16,7 @@ export default {
   data() {
     return {
       gltext:{},
+      newModelMatrix:new Matrix4().setRotate(0,0, 1,0),
       indices:new Uint8Array([
         0, 1, 2,   0, 2, 3,    // front
         4, 5, 6,   4, 6, 7,    // right
@@ -71,6 +72,7 @@ export default {
           {keyword:'a_Normal',size:3,type:'FLOAT',offset:0}
         ]
       },
+      pointnum:0
     }
   },
   mounted() {
@@ -119,9 +121,10 @@ export default {
     //将顶点索引数据写入缓冲区
     let datanum1 =this.initVertexBuffers(this.gltext,this.indices,this.indicesBuffer);  
     //设置变换、视图矩阵
-    this.setmatrix()
+    this.setmatrix(this.newModelMatrix)
     //点索引绘图
-    this.drawElements(datanum1);
+    this.pointnum = datanum1;
+    this.drawElements(this.pointnum);
     //键盘控制注册
     let that = this;
     document.onkeydown = function (event) {
@@ -162,7 +165,11 @@ export default {
       viewMatrix.setLookAt(0,0,7,0,0,0,0,1,0);
       //设置模型矩阵的相关信息
       let modelMatrix = new Matrix4();
-      modelMatrix.setRotate(130,10, 0,1);
+      if (newModelMatrix) {
+        modelMatrix=newModelMatrix
+      } else {
+        modelMatrix.setRotate(130,10, 0,1);  
+      }
       //设置透视投影矩阵
       let projMatrix = new Matrix4();
       projMatrix.setPerspective(30,this.$refs.exampe.width/this.$refs.exampe.height,1,100);
@@ -195,30 +202,29 @@ export default {
       let u_LightPosition = this.gltext.getUniformLocation(this.gltext.program, "u_LightPosition");
       this.gltext.uniform3f(u_LightPosition,4.0,3.0,13.0);
       //设置环境光颜色
-      // let u_AmbientLight = this.gltext.getUniformLocation(this.gltext.program, "u_AmbientLight");
-      // this.gltext.uniform3f(u_AmbientLight,0.2,0.2,0.2);
+      let u_AmbientLight = this.gltext.getUniformLocation(this.gltext.program, "u_AmbientLight");
+      this.gltext.uniform3f(u_AmbientLight,0.2,0.2,0.2);
     },
     keychangeview(event){
-      let modelMatrix = new Matrix4();
-      let modelMatrixTarget = {angle:0,x:0,y:0,z:0};
+      let changewModelMatrix = new Matrix4();
       if(event.keyCode == 39){
-        modelMatrixTarget.y = 1;
-        modelMatrixTarget.angle+=10;
-      console.log(event);
+        changewModelMatrix.setRotate(10,0,1,0);
       }else if(event.keyCode == 37){
-      console.log(event);
+        changewModelMatrix.setRotate(-10,0,1,0);
       }else if(event.keyCode == 38){
-      console.log(event);
+        changewModelMatrix.setRotate(-10,1,0,0);
       }else if(event.keyCode == 40){
-      console.log(event);
+        changewModelMatrix.setRotate(10,1,0,0);
       }else if(event.keyCode == 107){
-      console.log(event);
+        changewModelMatrix.setRotate(-10,0,0,1);
       }else if(event.keyCode == 109){
-      console.log(event);
+        changewModelMatrix.setRotate(10,0,0,1);
       }else {
           return;
       };
-
+      this.newModelMatrix = this.newModelMatrix.multiply(changewModelMatrix);
+      this.setmatrix(this.newModelMatrix);
+      this.drawElements(this.pointnum);
     }
   }
 }
