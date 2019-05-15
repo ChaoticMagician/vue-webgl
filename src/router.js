@@ -203,5 +203,23 @@ export default new Router({
       component: () =>
         import("./double/double22.vue")
     },
+    {
+      path: "/double23",
+      name: "double23",
+      component: () =>
+        import("./double/double23.vue")
+    },
+    {
+      path: "/double24",
+      name: "double24",
+      component: () =>
+        import("./double/double24.vue")
+    },
+    {
+      path: "/double25",
+      name: "double25",
+      component: () =>
+        import("./double/double25.vue")
+    },
   ]
 });
