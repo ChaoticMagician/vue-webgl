@@ -221,5 +221,11 @@ export default new Router({
       component: () =>
         import("./double/double25.vue")
     },
+    {
+      path: "/double26",
+      name: "double26",
+      component: () =>
+        import("./double/double26.vue")
+    },
   ]
 });
